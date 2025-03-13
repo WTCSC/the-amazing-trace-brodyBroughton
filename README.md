@@ -113,3 +113,9 @@ Each graph provides a visual representation of the network path to the destinati
 ## Example Graph
 
 ![Example Traceroute Graph](example_graph.png)
+
+## Example with Timeouts
+
+![Example Traceroute with Timeouts](timeout_example_graph.png)
+
+This graph shows an example of what happens when certain hops along the route time out. Notice the missing data points where routers didn't respond to the traceroute requests. These gaps in the graph correspond to firewalled routers, network equipment configured not to respond to ICMP, or potentially congested network segments.
