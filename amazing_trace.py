@@ -4,6 +4,8 @@ import numpy as np
 from matplotlib.ticker import MaxNLocator
 import time
 import os
+import subprocess
+import re
 
 def execute_traceroute(destination):
     """
@@ -15,13 +17,9 @@ def execute_traceroute(destination):
     Returns:
         str: The raw output from the traceroute command
     """
-    # Your code here
-    # Hint: Use the subprocess module to run the traceroute command
-    # Make sure to handle potential errors
+    raw_output = subprocess.run(["sudo", "traceroute", "-I", destination], capture_output=True, text=True, check=True)
 
-    # Remove this line once you implement the function,
-    # and don't forget to *return* the output
-    pass
+    return raw_output.stdout
 
 def parse_traceroute(traceroute_output):
     """
@@ -61,13 +59,55 @@ def parse_traceroute(traceroute_output):
         ]
     ```
     """
-    # Your code here
-    # Hint: Use regular expressions to extract the relevant information
-    # Handle timeouts (asterisks) appropriately
+    traceroute_data = []
+    
+    # Regex explained in README
+    regex = r'(\d+)\s+([^\s]+)\s+\(([^)]+)\)\s+((?:\d+\.\d+\s+ms\s+)+|\*+\s+\*+\s+\*+|\s*)'
 
-    # Remove this line once you implement the function,
-    # and don't forget to *return* the output
-    pass
+    # Splits each hop into line from traceroute output
+    for line in traceroute_output.splitlines():
+        
+        # Matching the regex to traceroute output
+        re_match = re.match(regex, line.strip())
+        
+        if re_match:
+
+            hop = int(re_match.group(1))
+            ip = re_match.group(3)
+            hostname = re_match.group(2)
+            rtt = re_match.group(4)
+            
+            # If there is no host name
+            if hostname == ip:
+                hostname = None
+            
+            # Handling timeouts
+            if "*" in rtt:
+                rtt_values = [None, None, None]
+            
+            # Convert to float and remove ms
+            else:
+                # Split rtt string by spaces and filter out non-numeric values
+                rtt_values = []
+                rtt_parts = rtt.strip().split()
+                
+                for part in rtt_parts:
+
+                    if "ms" in part:
+                        # Remove ms 
+                        continue
+                    else:
+                        # Convert to float and remove any escaped characters
+                        rtt_values.append(float(part.strip()))
+
+            traceroute_data.append({
+                'hop' : hop,
+                'ip' : ip,
+                'hostname' : hostname,
+                'rtt' : rtt_values
+                })
+    
+    return traceroute_data
 
 # ============================================================================ #
 #                    DO NOT MODIFY THE CODE BELOW THIS LINE                    #
